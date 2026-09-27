@@ -28,7 +28,7 @@ SITE = {
     "tagline":      "大阪の刑事弁護",
     "catch":        "最初の72時間から",
     "base_url":     "https://first72-osaka.github.io",
-    "benfit_url":   "https://benfit-osaka.github.io",
+    "benfit_url":   "https://benfit-osaka.github.io/benfit/",
 
     # 連絡先（法人名・住所・代表番号は掲載しない方針）
     "lawyer":       "岩佐 拳伍",
