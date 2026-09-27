@@ -14,6 +14,11 @@ First72 サイトビルダー
 """
 
 import os
+import sys
+from urllib.parse import quote
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from i18n import LANG_META, FOREIGN  # noqa: E402
 
 # =============================================================
 # サイト共通設定（変更はここだけ）
@@ -233,6 +238,43 @@ footer .disc{margin-top:16px;border-top:1px solid rgba(255,255,255,.1);padding-t
 
 :focus-visible{outline:3px solid var(--amber);outline-offset:2px;border-radius:4px;}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important;}}
+
+/* 外国籍の方向けの導線（トップ） */
+.fband{background:var(--navy);color:#fff;padding:44px 0;}
+.fband h2{color:#fff;}
+.fband .lead-txt{color:#D5DEE8;}
+.fband a.chip{background:transparent;color:#fff;border-color:rgba(255,255,255,.3);text-decoration:none;}
+.fband a.chip:hover{border-color:var(--amber);color:var(--amber);}
+"""
+
+# 外国籍の方向けページ専用
+FOREIGN_CSS = """
+.langbar{background:var(--navy-deep);border-bottom:1px solid rgba(255,255,255,.08);}
+.langbar .wrap{display:flex;gap:6px;overflow-x:auto;padding-top:8px;padding-bottom:8px;scrollbar-width:none;}
+.langbar a{flex:none;font-size:.82rem;color:#B9C6D6;text-decoration:none;padding:5px 12px;
+  border-radius:999px;border:1px solid rgba(255,255,255,.14);}
+.langbar a:hover{border-color:#fff;color:#fff;}
+.langbar a[aria-current="page"]{background:var(--amber);color:var(--amber-ink);border-color:var(--amber);font-weight:700;}
+.bigs{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:6px 0 22px;max-width:620px;}
+.bigs .n{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:4rem;line-height:.9;color:var(--navy);}
+.bigs .n span{font-size:1.2rem;color:var(--amber);margin-left:.15em;}
+.bigs .l{font-size:.88rem;color:var(--slate);margin-top:6px;line-height:1.6;}
+ol.flow{list-style:none;margin:8px 0 0;padding:0;counter-reset:f;max-width:760px;}
+ol.flow li{position:relative;padding:0 0 26px 52px;counter-increment:f;}
+ol.flow li::before{content:counter(f);position:absolute;left:0;top:0;width:34px;height:34px;border-radius:50%;
+  background:var(--navy);color:#fff;display:grid;place-items:center;
+  font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:1.1rem;}
+ol.flow li::after{content:"";position:absolute;left:16px;top:38px;bottom:4px;width:2px;background:var(--line);}
+ol.flow li:last-child::after{display:none;}
+ol.flow li.key::before{background:var(--amber);color:var(--amber-ink);}
+ol.flow .st{font-weight:700;font-size:1.05rem;}
+ol.flow .du{display:inline-block;margin-left:.6em;font-size:.8rem;font-weight:700;color:var(--amber-ink);
+  background:#FBE7D2;border-radius:6px;padding:2px 9px;vertical-align:2px;}
+ol.flow .ds{font-size:.94rem;color:#33404F;margin-top:4px;}
+.warnbox{background:var(--white);border:1px solid var(--line);border-left:5px solid #C0392B;
+  border-radius:12px;padding:22px 22px 18px;max-width:820px;}
+.warnbox ul{margin:12px 0 0;padding-left:1.2em;}
+.warnbox li{margin-bottom:6px;font-weight:500;}
 """
 
 # =============================================================
@@ -251,7 +293,7 @@ def cta_pair(ghost=False, prefix=""):
     line_cls = "btn-ghost" if ghost else "btn-line"
     line_icon = "" if ghost else ICON_LINE
     return f"""<div class="hero-cta">
-      <a class="btn btn-call" href="tel:{SITE['tel_link']}">{ICON_TEL}今すぐ電話（24時間受付）</a>
+      <a class="btn btn-call" href="tel:{SITE['tel_link']}">{ICON_TEL}電話で相談する</a>
       <a class="btn {line_cls}" href="{SITE['line_url']}" target="_blank" rel="noopener">{line_icon}LINEで相談</a>
     </div>"""
 
@@ -274,6 +316,7 @@ def footer(prefix=""):
   <div>TEL {SITE['tel']}（{SITE['tel_note']}）／MAIL <a class="x" href="mailto:{SITE['email']}">{SITE['email']}</a></div>
   <div style="margin-top:10px;">同じ弁護士が運営するフィットネス業界向け法務サイト
     <a class="x" href="{SITE['benfit_url']}" target="_blank" rel="noopener"><strong>BenFit</strong></a></div>
+  <div>外国籍の方へ：{foreign_links(prefix)}</div>
   <div class="disc">
     本サイトは刑事弁護に関する一般的な情報を提供するものであり、特定の結果を保証するものではありません。
     掲載の統計は「地方公共団体条例違反」等を母集団とする参考値を含み、痴漢のみの数値ではありません
@@ -342,7 +385,7 @@ def clock_section():
     ここでどれだけ早く動けるかが、示談と不起訴の可能性を大きく左右します。</p>
   <div class="rail">
     <div class="step"><div class="t">0 — 48h</div><div class="h">逮捕・警察の捜査</div>
-      <div class="d">本人は外部と連絡できず、ご家族は状況をつかめません。弁護士は即日接見が可能です。</div></div>
+      <div class="d">本人は外部と連絡できず、ご家族は状況をつかめません。この段階でも弁護士は本人と接見できます。</div></div>
     <div class="step key"><div class="t">〜 72h</div><div class="h">勾留するかの判断（分岐点）</div>
       <div class="d">検察官の勾留請求、裁判官の勾留質問。弁護士が勾留阻止・準抗告に動けば、勾留されず釈放となる例もあります。</div></div>
     <div class="step"><div class="t">72h 〜</div><div class="h">起訴／不起訴へ</div>
@@ -369,7 +412,7 @@ def contact_section():
       <textarea id="message" name="message" required></textarea></div>
     <button type="submit" class="btn btn-call">送信する</button>
   </form>
-  <p class="cap-note">※ お急ぎの場合はお電話ください。逮捕直後は時間が結果を左右します。</p>
+  <p class="cap-note">※ お急ぎの場合はお電話ください。逮捕直後は時間が結果を左右します。<br>フォーム・LINEでのお問い合わせには、順次ご返信します。</p>
 </div></section>"""
 
 
@@ -377,7 +420,7 @@ def final_cta():
     return f"""<section class="final"><div class="wrap">
   <span class="eyebrow">{SITE['tagline']}</span>
   <h2>{SITE['catch']}。</h2>
-  <p>逮捕・呼び出しのご連絡は、時間との勝負です。24時間受付。まずはお電話ください。</p>
+  <p>逮捕・呼び出しのご連絡は、時間との勝負です。まずはお電話ください。<br>\n    夜間・休日にいただいたご連絡は、折り返しご対応します。</p>
   {cta_pair(ghost=True)}
 </div></section>"""
 
@@ -389,8 +432,8 @@ def build_index():
     body = f"""<section class="hero" id="top"><div class="wrap">
   <span class="tag">大阪の刑事事件・刑事弁護</span>
   <h1>逮捕・呼び出しなら、<br><em>最初の72時間</em>で動きます。</h1>
-  <p class="lead">示談交渉に強い弁護士が、前科を回避するために最短で動く。
-    大阪地裁・大阪拘置所・府内各警察署へ即日接見します。</p>
+  <p class="lead">示談交渉に力を入れている弁護士が、前科を回避するため、できる限り早い段階から動きます。
+    大阪地裁・大阪拘置所・府内各警察署へ、日程を調整のうえ接見に伺います。</p>
   {cta_pair()}
   <p class="hero-note">弁護士 {SITE['lawyer']}（{SITE['bar']}）／ご家族からのご相談も承ります</p>
 </div></section>
@@ -421,11 +464,20 @@ def build_index():
   </div>
 </div></section>
 
+<section class="fband"><div class="wrap">
+  <span class="eyebrow">For foreign nationals</span>
+  <h2>外国籍の方の刑事事件</h2>
+  <p class="lead-txt">日本で逮捕された外国籍の方とご家族に向けて、手続の流れ、釈放の条件、在留資格への影響を
+    多言語でご案内しています。通訳人の手配に対応し、全国の警察署・拘置所へ伺います
+    （交通費・日当は別途、日程は調整のうえ）。</p>
+  <div class="chips">{foreign_chips("")}</div>
+</div></section>
+
 <section class="sec sec-alt"><div class="wrap">
   <span class="eyebrow">First72 ができること</span>
   <h2>逮捕直後から、やるべきことを同時に進めます</h2>
   <ul class="do">
-    <li>{ICON_CHECK}<div><b>即日接見・身柄解放</b><span>逮捕直後の接見、勾留阻止・準抗告で早期釈放を目指します。</span></div></li>
+    <li>{ICON_CHECK}<div><b>接見・身柄解放</b><span>逮捕直後の接見、勾留阻止・準抗告により早期釈放を目指します。</span></div></li>
     <li>{ICON_CHECK}<div><b>被害者との示談交渉</b><span>本人・ご家族では着手が難しい交渉を、弁護士が代理します。</span></div></li>
     <li>{ICON_CHECK}<div><b>不起訴に向けた働きかけ</b><span>検察官への意見書提出など、処分に向けた活動を行います。</span></div></li>
     <li>{ICON_CHECK}<div><b>起訴後の情状弁護</b><span>再犯防止策の構築を含め、量刑を軽くするための弁護を行います。</span></div></li>
@@ -436,10 +488,10 @@ def build_index():
   <span class="eyebrow">大阪に特化</span>
   <h2>大阪の刑事事件に、地元で対応します</h2>
   <p class="lead-txt">大阪府迷惑防止条例をはじめ、大阪で発生した刑事事件に対応します。
-    逮捕の一報を受けたら、即日で接見に向かいます。</p>
+    逮捕のご連絡をいただいたら、日程を調整のうえ、できる限り早く接見に伺います。</p>
   <div class="chips">
     <span class="chip">大阪地方裁判所</span><span class="chip">大阪拘置所</span>
-    <span class="chip">府内各警察署へ即日接見</span><span class="chip">大阪弁護士会所属</span>
+    <span class="chip">府内各警察署へ接見</span><span class="chip">大阪弁護士会所属</span>
   </div>
 </div></section>
 
@@ -447,7 +499,7 @@ def build_index():
 {final_cta()}"""
     return page(
         title="大阪の刑事事件・刑事弁護｜First72 ― 最初の72時間から",
-        description="大阪の刑事弁護。示談交渉に強い弁護士が、逮捕直後から前科回避のために動きます。犯罪類型ごとの量刑相場を掲載。24時間受付・即日接見。",
+        description="大阪の刑事弁護。示談交渉に強い弁護士が、逮捕直後から前科回避のために動きます。犯罪類型ごとの量刑相場を掲載。",
         body=body, prefix="", canonical="index.html")
 
 
@@ -458,8 +510,8 @@ def build_chikan():
     body = f"""<section class="hero" id="top"><div class="wrap">
   <span class="tag">大阪府迷惑防止条例｜痴漢事件</span>
   <h1>大阪で痴漢事件。<br>逮捕・呼び出しなら、<em>最初の72時間</em>で動きます。</h1>
-  <p class="lead">示談交渉に強い弁護士が、前科を回避するために最短で動く。
-    大阪地裁・大阪拘置所・府内各警察署へ即日接見します。</p>
+  <p class="lead">示談交渉に力を入れている弁護士が、前科を回避するため、できる限り早い段階から動きます。
+    大阪地裁・大阪拘置所・府内各警察署へ、日程を調整のうえ接見に伺います。</p>
   {cta_pair()}
   <p class="hero-note">弁護士 {SITE['lawyer']}（{SITE['bar']}）／ご家族からのご相談も承ります</p>
 </div></section>
@@ -544,7 +596,7 @@ def build_chikan():
   <span class="eyebrow">First72 ができること</span>
   <h2>逮捕直後から、やるべきことを同時に進めます</h2>
   <ul class="do">
-    <li>{ICON_CHECK}<div><b>即日接見・身柄解放</b><span>逮捕直後の接見、勾留阻止・準抗告で早期釈放を目指します。</span></div></li>
+    <li>{ICON_CHECK}<div><b>接見・身柄解放</b><span>逮捕直後の接見、勾留阻止・準抗告により早期釈放を目指します。</span></div></li>
     <li>{ICON_CHECK}<div><b>被害者との示談交渉</b><span>本人・ご家族では着手が難しい交渉を、弁護士が代理します。</span></div></li>
     <li>{ICON_CHECK}<div><b>不起訴に向けた働きかけ</b><span>検察官への意見書提出など、処分に向けた活動を行います。</span></div></li>
     <li>{ICON_CHECK}<div><b>起訴後の情状弁護</b><span>再犯防止策の構築を含め、量刑を軽くするための弁護を行います。</span></div></li>
@@ -570,7 +622,7 @@ def build_chikan():
   <h2>明朗な料金体系</h2>
   <table class="fee-tbl">
     <tr><th>項目</th><th>費用（税込）</th></tr>
-    <tr><td>初回相談</td><td class="amt">〔無料 ※要件〕</td></tr>
+    <tr><td>初回相談</td><td class="amt">〔◯◯円〕</td></tr>
     <tr><td>着手金（起訴前弁護）</td><td class="amt">〔◯◯万円〜〕</td></tr>
     <tr><td>報酬金（不起訴・示談成立）</td><td class="amt">〔◯◯万円〜〕</td></tr>
     <tr><td>接見のみのご依頼</td><td class="amt">〔◯万円〜〕</td></tr>
@@ -603,6 +655,217 @@ def build_chikan():
 
 
 # =============================================================
+# 外国籍の方向けページ（多言語）
+# =============================================================
+ICON_MAIL = ('<svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 '
+             '2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>')
+
+TEL_INTL = "+81-6-6202-8789"
+TEL_INTL_LINK = "+81662028789"
+
+# 言語ごとの本文フォント（Google Fonts の指定, CSS の font-family）
+FONTS = {
+    "ja": ("Noto+Sans+JP:wght@400;500;700", '"Noto Sans JP"'),
+    "en": ("Noto+Sans:wght@400;500;700",    '"Noto Sans"'),
+    "vi": ("Noto+Sans:wght@400;500;700",    '"Noto Sans"'),
+    "zh": ("Noto+Sans+SC:wght@400;500;700", '"Noto Sans SC"'),
+    "ko": ("Noto+Sans+KR:wght@400;500;700", '"Noto Sans KR"'),
+}
+
+
+def available_langs():
+    """翻訳が用意できている言語だけを返す（未翻訳の言語はリンクも出さない）"""
+    return [c for c in LANG_META if c in FOREIGN]
+
+
+def foreign_links(prefix):
+    """日本語ページのフッター用：言語名のリンク列"""
+    return " ／ ".join(
+        f'<a class="x" href="{prefix}{LANG_META[c]["dir"]}/index.html" lang="{LANG_META[c]["html_lang"]}">'
+        f'{LANG_META[c]["label"]}</a>'
+        for c in available_langs()
+    )
+
+
+def foreign_chips(prefix):
+    """トップページの導線用：言語名のチップ"""
+    return "".join(
+        f'<a class="chip" href="{prefix}{LANG_META[c]["dir"]}/index.html" lang="{LANG_META[c]["html_lang"]}">'
+        f'{LANG_META[c]["label"]}</a>'
+        for c in available_langs()
+    )
+
+
+def build_foreign(code):
+    t = FOREIGN[code]
+    meta = LANG_META[code]
+    font_q, font_fam = FONTS[code]
+    mail_href = f"mailto:{SITE['email']}?subject={quote('First72 - ' + t['sub'])}"
+    tel_btn = f"{t['cta_tel']} {TEL_INTL}"
+
+    def ul_do(items):
+        return "".join(
+            f'<li>{ICON_CHECK}<div><b>{h}</b><span>{d}</span></div></li>' for h, d in items)
+
+    def cta(ghost_tel=True):
+        return f"""<div class="hero-cta">
+      <a class="btn btn-call" href="{mail_href}">{ICON_MAIL}{t['cta_mail']}</a>
+      <a class="btn btn-ghost" href="tel:{TEL_INTL_LINK}">{tel_btn}</a>
+    </div>"""
+
+    cur = ' aria-current="page"'
+    langbar = "".join(
+        f'<a href="../{LANG_META[c]["dir"]}/index.html" lang="{LANG_META[c]["html_lang"]}"'
+        + (cur if c == code else "")
+        + f'>{LANG_META[c]["label"]}</a>'
+        for c in available_langs()
+    )
+
+    hreflang = "\n".join(
+        f'<link rel="alternate" hreflang="{LANG_META[c]["html_lang"]}" '
+        f'href="{SITE["base_url"]}/{LANG_META[c]["dir"]}/">'
+        for c in available_langs()
+    ) + f'\n<link rel="alternate" hreflang="x-default" href="{SITE["base_url"]}/en/">'
+
+    key = ' class="key"'   # 2番目（勾留請求＝72時間の分岐点）を強調
+    flow = "".join(
+        "<li" + (key if i == 1 else "") + ">"
+        + f'<span class="st">{st}</span><span class="du">{du}</span><div class="ds">{ds}</div></li>'
+        for i, (st, du, ds) in enumerate(t["steps"])
+    )
+    imm_list = "".join(f"<li>{x}</li>" for x in t["imm_list"])
+
+    body = f"""<header class="hdr"><div class="wrap hdr-in">
+  <a class="brand" href="index.html">
+    <span class="mark">First<b>72</b></span><span class="sub">{t['sub']}</span>
+  </a>
+  <a class="hdr-call" href="{mail_href}">{ICON_MAIL}{t['hdr_mail']}</a>
+</div></header>
+<nav class="langbar" aria-label="Language"><div class="wrap">{langbar}</div></nav>
+
+<section class="hero" id="top"><div class="wrap">
+  <span class="tag">{t['tag']}</span>
+  <h1>{t['h1']}</h1>
+  <p class="lead">{t['lead']}</p>
+  {cta()}
+  <p class="hero-note">{t['note']}</p>
+</div></section>
+
+<section class="sec"><div class="wrap">
+  <span class="eyebrow">{t['tl_eyebrow']}</span>
+  <h2>{t['tl_h2']}</h2>
+  <div class="bigs">
+    <div><div class="n">72<span>{t['big1_u']}</span></div><div class="l">{t['big1_label']}</div></div>
+    <div><div class="n">23<span>{t['big2_u']}</span></div><div class="l">{t['big2_label']}</div></div>
+  </div>
+  <p class="lead-txt">{t['tl_lead']}</p>
+  <ol class="flow">{flow}</ol>
+</div></section>
+
+<section class="sec sec-alt"><div class="wrap">
+  <span class="eyebrow">{t['can_eyebrow']}</span>
+  <h2>{t['can_h2']}</h2>
+  <ul class="do">{ul_do(t['can_items'])}</ul>
+</div></section>
+
+<section class="sec"><div class="wrap">
+  <span class="eyebrow">{t['need_eyebrow']}</span>
+  <h2>{t['need_h2']}</h2>
+  <p class="lead-txt">{t['need_lead']}</p>
+  <ul class="do">{ul_do(t['need_items'])}</ul>
+</div></section>
+
+<section class="sec sec-alt"><div class="wrap">
+  <span class="eyebrow">{t['imm_eyebrow']}</span>
+  <h2>{t['imm_h2']}</h2>
+  <div class="warnbox">
+    <p style="margin:0;">{t['imm_lead']}</p>
+    <ul>{imm_list}</ul>
+  </div>
+  <p class="cap-note">{t['imm_note']}</p>
+</div></section>
+
+<section class="sec"><div class="wrap">
+  <span class="eyebrow">{t['rights_eyebrow']}</span>
+  <h2>{t['rights_h2']}</h2>
+  <ul class="do">{ul_do(t['rights_items'])}</ul>
+</div></section>
+
+<section class="sec sec-alt"><div class="wrap">
+  <span class="eyebrow">{t['sup_eyebrow']}</span>
+  <h2>{t['sup_h2']}</h2>
+  <ul class="do">{ul_do(t['sup_items'])}</ul>
+</div></section>
+
+<section class="sec" id="contact"><div class="wrap">
+  <span class="eyebrow">{t['contact_eyebrow']}</span>
+  <h2>{t['contact_h2']}</h2>
+  <p class="lead-txt">{t['contact_lead']}</p>
+  {cta()}
+  <form class="form" action="{SITE['form_action']}" method="POST">
+    <input type="hidden" name="_subject" value="【First72 / Foreign-{code}】お問い合わせがありました">
+    <input type="hidden" name="language" value="{code}">
+    <div class="fg"><label for="name">{t['f_name']}<span class="req">*</span></label>
+      <input type="text" id="name" name="name" required></div>
+    <div class="fg"><label for="email">{t['f_email']}<span class="req">*</span></label>
+      <input type="email" id="email" name="email" required></div>
+    <div class="fg"><label for="phone">{t['f_phone']}</label>
+      <input type="tel" id="phone" name="phone"></div>
+    <div class="fg"><label for="message">{t['f_msg']}<span class="req">*</span></label>
+      <textarea id="message" name="message" required></textarea></div>
+    <button type="submit" class="btn btn-call">{t['f_submit']}</button>
+  </form>
+  <p class="cap-note">{t['contact_note']}</p>
+</div></section>
+
+<section class="final"><div class="wrap">
+  <span class="eyebrow">{t['final_eyebrow']}</span>
+  <h2>{t['final_h2']}</h2>
+  <p>{t['final_p']}</p>
+  {cta()}
+</div></section>
+
+<footer><div class="wrap">
+  <a class="brand" href="index.html">
+    <span class="mark">First<b>72</b></span><span class="sub">{t['sub']}</span>
+  </a>
+  <div><strong>{t['lawyer']}</strong></div>
+  <div>Email <a class="x" href="{mail_href}">{SITE['email']}</a></div>
+  <div>TEL {TEL_INTL}（{SITE['tel']} {t['tel_domestic']}）</div>
+  <div style="margin-top:10px;"><a class="x" href="../index.html">{t['main_site']}</a></div>
+  <div class="disc">{t['disclaimer']}<br>&copy; {SITE['year']} {SITE['brand']}</div>
+</div></footer>
+
+<div class="sticky">
+  <a class="btn btn-call" href="{mail_href}">{ICON_MAIL}{t['hdr_mail']}</a>
+  <a class="btn btn-ghost" href="tel:{TEL_INTL_LINK}">{ICON_TEL.replace('<svg', '<svg style="fill:#fff"')}{t['cta_tel']}</a>
+</div>"""
+
+    return f"""<!DOCTYPE html>
+<html lang="{meta['html_lang']}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{t['meta_title']}</title>
+<meta name="description" content="{t['meta_desc']}">
+<link rel="canonical" href="{SITE['base_url']}/{meta['dir']}/">
+{hreflang}
+<meta property="og:title" content="{t['meta_title']}">
+<meta property="og:description" content="{t['meta_desc']}">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family={font_q}&display=swap" rel="stylesheet">
+<style>{CSS}{FOREIGN_CSS}
+body{{font-family:{font_fam},system-ui,sans-serif;}}</style>
+</head>
+<body>
+{body}
+</body>
+</html>"""
+
+
+# =============================================================
 # 実行
 # =============================================================
 def main():
@@ -613,6 +876,10 @@ def main():
         "index.html": build_index(),
         os.path.join("crimes", "chikan.html"): build_chikan(),
     }
+    for code in available_langs():
+        d = LANG_META[code]["dir"]
+        os.makedirs(os.path.join(root, d), exist_ok=True)
+        pages[os.path.join(d, "index.html")] = build_foreign(code)
     for path, html in pages.items():
         full = os.path.join(root, path)
         with open(full, "w", encoding="utf-8") as f:
