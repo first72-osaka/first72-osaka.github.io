@@ -250,7 +250,7 @@ footer .disc{margin-top:16px;border-top:1px solid rgba(255,255,255,.1);padding-t
 # 外国籍の方向けページ専用
 FOREIGN_CSS = """
 .langbar{background:var(--navy-deep);border-bottom:1px solid rgba(255,255,255,.08);}
-.langbar .wrap{display:flex;gap:6px;overflow-x:auto;padding-top:8px;padding-bottom:8px;scrollbar-width:none;}
+.langbar .wrap{display:flex;flex-wrap:wrap;gap:6px;padding-top:8px;padding-bottom:8px;}
 .langbar a{flex:none;font-size:.82rem;color:#B9C6D6;text-decoration:none;padding:5px 12px;
   border-radius:999px;border:1px solid rgba(255,255,255,.14);}
 .langbar a:hover{border-color:#fff;color:#fff;}
